@@ -1,0 +1,75 @@
+#screen{
+    background-color: #0F0;
+    width: 640px;
+    height: 360px;
+    overflow: hidden;
+    white-space : nowrap;
+    cursor: default;
+    -ms-user-select: none;
+    -moz-user-select: none;
+    -webkit-user-select: none;
+    user-select: none;
+    position: relative;
+}
+.comment{
+    position: absolute;
+    font-size: 24px;
+    line-height: 1;
+    z-index: 2;
+    color: #fff;
+    text-shadow: -1px -1px #000, 1px -1px #000,	-1px 1px #000, 1px 1px #000;
+}
+.comment{
+    animation-name: lane0;
+    animation-timing-function: linear;
+    animation-duration: 10s;
+    animation-fill-mode: forwards;
+}
+@keyframes lane0 {
+    from{ transform: translate(640px, 0); }
+    to{ transform: translate(-1280px, 0); }
+}
+@keyframes lane1 {
+    from{ transform: translate(640px, 25px); }
+    to{ transform: translate(-1280px, 25px); }
+}
+@keyframes lane2 {
+    from{ transform: translate(640px, 50px); }
+    to{ transform: translate(-1280px, 50px); }
+}
+@keyframes lane3 {
+    from{ transform: translate(640px, 25px); }
+    to{ transform: translate(-1280px, 25px); }
+}
+@keyframes lane4 {
+    from{ transform: translate(640px, 50px); }
+    to{ transform: translate(-1280px, 50px); }
+}
+@keyframes lane5 {
+    from{ transform: translate(640px, 0); }
+    to{ transform: translate(-1280px, 0); }
+}
+@keyframes lane6 {
+    from{ transform: translate(640px, 25px); }
+    to{ transform: translate(-1280px, 25px); }
+}
+@keyframes lane7 {
+    from{ transform: translate(640px, 50px); }
+    to{ transform: translate(-1280px, 50px); }
+}
+@keyframes lane8 {
+    from{ transform: translate(640px, 25px); }
+    to{ transform: translate(-1280px, 25px); }
+}
+@keyframes lane9 {
+    from{ transform: translate(640px, 50px); }
+    to{ transform: translate(-1280px, 50px); }
+}
+@keyframes lane10 {
+    from{ transform: translate(640px, 25px); }
+    to{ transform: translate(-1280px, 25px); }
+}
+@keyframes lane11 {
+    from{ transform: translate(640px, 50px); }
+    to{ transform: translate(-1280px, 50px); }
+}
