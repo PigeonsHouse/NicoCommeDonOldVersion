@@ -6,12 +6,12 @@
 }
 @keyframes slide {
     0% {
-        margin-left: 0;
-        transform: translateX(-100%)
+        margin-left: 100%;
+        transform: translateX(0%)
     }
     100%{
-        margin-left: 100%;
-        transform: translateX(0)
+        margin-left: 0%;
+        transform: translateX(-100%)
     }
 }
 .comment {
@@ -23,7 +23,7 @@
     text-shadow: -1px -1px #000, 1px -1px #000,	-1px 1px #000, 1px 1px #000;
     overflow: hidden;
     white-space: nowrap;
-    animation: 5s linear 0s 1 slide;
+    animation: 10s linear 0s 1 slide;
     animation-fill-mode: forwards;
 }
 

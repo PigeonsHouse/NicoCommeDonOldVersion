@@ -37,6 +37,8 @@ class CommentPage extends Component {
     txt = txt.replace('&apos;', '\'')
     txt = txt.replace('&amp;', '&')
     txt = txt.replace('&quot;', '"')
+    txt = txt.replace('&lt;', '<')
+    txt = txt.replace('&gt;', '>')
     return txt
   }
 
@@ -49,25 +51,34 @@ class CommentPage extends Component {
   }
 
   streamStart(){
-    console.log('Start streaming')
-    this.mstdn.stream('streaming/public/local').on('message', (msg) => {
-      if (msg.event === "update"){
-        console.log(msg.data.content)
-        this.setState({
-          account: this.getName(msg.data.account),
-          content: this.rewrite(msg.data.content),
-        })
-        let { comments } = this.state
-        const comment = (
-          <div className="comment">
-            <p id="content">{ this.getName(msg.data.content)}</p>
-            <p id="user">{ this.rewrite(msg.data.account )}</p>
-          </div>
-        )
-        comments.push(comment)
-        this.setState({comments})
-      }
-    })
+    if(this.state.isStreaming){
+      return
+    }else{
+      console.log('Start streaming')
+      this.mstdn.stream('streaming/public/local').on('message', (msg) => {
+        if (msg.event === "update"){
+          console.log(msg.data.content)
+          this.setState({
+            account: this.getName(msg.data.account),
+            content: this.rewrite(msg.data.content),
+          })
+          let comments = this.state.comments
+          const comment = (
+            <div key={msg.data.id} className="comment">
+              <p id="content">{ this.rewrite(msg.data.content)}</p>
+              <p id="user">{ this.getName(msg.data.account)}</p>
+            </div>
+          )
+          comments.push(comment)
+          this.setState({
+            comments: comments
+          })
+        }
+      })
+      this.setState({
+        isStreaming: true
+      })
+    }
   }
 
   render() {
@@ -80,7 +91,7 @@ class CommentPage extends Component {
             })
           }
         </div>
-        <input type='button' value='LTLの監視開始' onClick={this.streamStart()} />
+        <input type='button' value='LTLの監視開始' onClick={this.streamStart} />
       </div>
     );
   }
