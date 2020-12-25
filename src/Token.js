@@ -24,7 +24,7 @@ class Token extends Component {
 
   hundleSubmitInstance(e){
     e.preventDefault()
-    Mastodon.createOAuthApp(this.state.instanceURL + '/api/v1/apps', 'obs-mastodon')
+    Mastodon.createOAuthApp(this.state.instanceURL + '/api/v1/apps', 'NicoCommeDon')
     .catch(err => console.error(err))
     .then((res) => {
       this.setState({client_id: res.client_id})
