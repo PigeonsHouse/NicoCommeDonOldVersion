@@ -1,7 +1,6 @@
 import Mastodon from 'mastodon-api';
 import React, {Component} from 'react';
 import { withRouter } from 'react-router-dom';
-import anime from 'animejs';
 import './Comment.css';
 
 class CommentPage extends Component {
@@ -11,35 +10,36 @@ class CommentPage extends Component {
       access_token: this.props.location.state.token,
       api_url: this.props.location.state.url + '/api/v1/',
     })
-    this.moveComment = anime({
-      targets: ['.comment'],
-      translateX: '100vw',
-      autoplay: true
-    });
     this.state = {
-      account: 'アルティメッ鳩',
-      content: 'アニメーション微塵も思いつかなくて草',
       comments: [],
       isStreaming: false,
-      streaming: null
     };
-    this.moveComment.play()
     this.rewrite = this.rewrite.bind(this);
     this.getName = this.getName.bind(this);
     this.streamStart = this.streamStart.bind(this);
   }
 
+  mstdnStream(){
+    return this.mstdn.stream('streaming/public/local')
+  }
+
+  getRandomInt(max) {
+    return Math.floor(Math.random() * Math.floor(max));
+  }
+
   rewrite(txt){
-    txt = txt.replace('</p><p>', '　')
-    txt = txt.replace('<p>', '')
-    txt = txt.replace('</p>', '')
-    txt = txt.replace('<br />','　')
-    txt = txt.replace('&apos;', '\'')
-    txt = txt.replace('&amp;', '&')
-    txt = txt.replace('&quot;', '"')
-    txt = txt.replace('&lt;', '<')
-    txt = txt.replace('&gt;', '>')
-    return txt
+    txt = txt.replace(/<\/p><p>/g, '　')
+    txt = txt.replace(/<p>/g, '')
+    txt = txt.replace(/<\/p>/g, '')
+    txt = txt.replace(/<br \/>/g,'　')
+    txt = txt.replace(/&apos;/g, '\'')
+    txt = txt.replace(/&amp;/g, '&')
+    txt = txt.replace(/&quot;/g, '"')
+    txt = txt.replace(/&lt;/g, '<')
+    txt = txt.replace(/&gt;/g, '>')
+    const e = document.createElement('span')
+    e.innerHTML = txt
+    return e.innerText
   }
 
   getName(account){
@@ -50,33 +50,48 @@ class CommentPage extends Component {
     }
   }
 
+  escapeHTML(htmlString) {
+  }
+
   streamStart(){
     if(this.state.isStreaming){
       return
     }else{
       console.log('Start streaming')
-      this.mstdn.stream('streaming/public/local').on('message', (msg) => {
-        if (msg.event === "update"){
-          console.log(msg.data.content)
-          this.setState({
-            account: this.getName(msg.data.account),
-            content: this.rewrite(msg.data.content),
-          })
-          let comments = this.state.comments
-          const comment = (
-            <div key={msg.data.id} className="comment">
-              <p id="content">{ this.rewrite(msg.data.content)}</p>
-              <p id="user">{ this.getName(msg.data.account)}</p>
-            </div>
-          )
-          comments.push(comment)
-          this.setState({
-            comments: comments
-          })
-        }
-      })
       this.setState({
         isStreaming: true
+      })
+      this.mstdnStream().on('message', (msg) => {
+        console.log("get new info")
+        console.log(msg)
+        if (msg.event === "update"){
+          if(this.rewrite(msg.data.content).length === 0){
+            return
+          }else{
+            console.log(this.rewrite(msg.data.content))
+            let comments = this.state.comments
+            let percentRnd = String(this.getRandomInt(8) * 5)
+            console.log(percentRnd)
+            const comment = (
+              <div key={msg.data.id} style={{marginTop: percentRnd + `%`}} className="comment">
+                <p>
+                  <p id="content"><img src={msg.data.account.avatar} alt="icon" width="35px" height="35px" style={{borderRadius: `5px`}}></img>{this.rewrite(msg.data.content)}</p>
+                  <p id="user">{this.getName(msg.data.account)}</p>
+                </p>
+              </div>
+            )
+            comments.push(comment)
+            this.setState({
+              comments: comments
+            })
+          }
+        }
+      })
+      this.mstdnStream().on('error', (err) => {
+        console.log(err)
+      })
+      this.mstdnStream().on('heartbeat', (msg) => {
+        console.log(msg)
       })
     }
   }
