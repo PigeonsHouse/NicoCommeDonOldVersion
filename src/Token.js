@@ -10,7 +10,6 @@ class Token extends Component {
       instanceURL: 'https://mastodon.compositecomputer.club',
       client_id: '',
       client_secret: '',
-      authURL: '',
       key: '',
       token: '',
     };
@@ -18,8 +17,6 @@ class Token extends Component {
     this.hundleKeyChange = this.hundleKeyChange.bind(this);
     this.hundleSubmitInstance = this.hundleSubmitInstance.bind(this);
     this.hundleSubmitKey = this.hundleSubmitKey.bind(this);
-    this.keyGetJump = this.keyGetJump.bind(this);
-    this.jumpCommentPage = this.jumpCommentPage.bind(this);
   }
 
   hundleSubmitInstance(e){
@@ -32,7 +29,7 @@ class Token extends Component {
       return Mastodon.getAuthorizationUrl(this.state.client_id, this.state.client_secret, this.state.instanceURL)
     })
     .then(url => {
-      this.setState({authURL: url})
+      window.open(url, "てすと");
     })
   }
 
@@ -44,12 +41,14 @@ class Token extends Component {
       this.setState({
         token: accessToken, 
       })
-      document.getElementById("jumpCommentPage").style.visibility="visible";
+      this.props.history.push({
+        pathname: "/main",
+        state: {
+          token: this.state.token,
+          url: this.state.instanceURL,
+        }
+      })
     })
-  }
-
-  keyGetJump(){
-    window.open(this.state.authURL, "てすと");
   }
 
   hundleURLChange(e){
@@ -58,16 +57,11 @@ class Token extends Component {
 
   hundleKeyChange(e){
     this.setState({key: e.target.value});
-  }
-
-  jumpCommentPage(){
-    this.props.history.push({
-      pathname: "/main",
-      state: {
-        token: this.state.token,
-        url: this.state.instanceURL,
-      }
-    })
+    if(e.target.value.length === 0){
+      document.getElementById("jumpCommentPage").style.pointerEvents="none"
+    }else{
+      document.getElementById("jumpCommentPage").style.pointerEvents="auto"
+    }
   }
 
   render() {
@@ -75,24 +69,16 @@ class Token extends Component {
       <div>
         <form onSubmit={this.hundleSubmitInstance}>
           <label>
-            インスタンスURL : 　　<input type="text" value={this.state.instanceURL} onChange={this.hundleURLChange} />
+            インスタンスURL : <input type="text" value={this.state.instanceURL} onChange={this.hundleURLChange} />
           </label>
-          <input type="submit" value="認可URLを発行"/>
+          <input type="submit" value="認証コードを発行"/>
         </form>
-        <label>
-          ここで認可キーをGET : <input type="text" value={this.state.authURL} placeholder="未発行" />
-          <input type='button' value='GETしに行く' onClick={this.keyGetJump} />
-        </label>
         <form onSubmit={this.hundleSubmitKey}>
           <label>
-            認可キー : 　　　　　　<input type="text" value={this.state.key} onChange={this.hundleKeyChange} placeholder="ここに貼る" />
+            認証コード :　　　<input type="text" value={this.state.key} onChange={this.hundleKeyChange} placeholder="ここに貼る" />
           </label>
-          <input type="submit" value="アクセストークンの発行"/>
+          <input type="submit" id="jumpCommentPage" style={{pointerEvents: `none`}} value="コメント画面に移動"/>
         </form>
-        <div>
-          アクセストークン : 　<input type="text" value={this.state.token} placeholder="未発行" />
-        </div>
-        <input type='button' id="jumpCommentPage" value='コメント画面に飛ぶ' style={{visibility: `hidden`}} onClick={this.jumpCommentPage} />
       </div>
     );
   }
