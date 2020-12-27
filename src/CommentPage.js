@@ -13,14 +13,14 @@ class CommentPage extends Component {
     this.state = {
       comments: [],
       isStreaming: false,
+      listener: null
     };
     this.rewrite = this.rewrite.bind(this);
     this.getName = this.getName.bind(this);
-    this.streamStart = this.streamStart.bind(this);
   }
 
   mstdnStream(){
-    return this.mstdn.stream('streaming/public/local')
+    return 
   }
 
   getRandomInt(max) {
@@ -28,16 +28,14 @@ class CommentPage extends Component {
   }
 
   rewrite(txt){
-    txt = txt.replace(/<\/p><p>/g, '　')
-    txt = txt.replace(/<p>/g, '')
-    txt = txt.replace(/<\/p>/g, '')
     txt = txt.replace(/<br \/>/g,'　')
     txt = txt.replace(/&apos;/g, '\'')
     txt = txt.replace(/&amp;/g, '&')
     txt = txt.replace(/&quot;/g, '"')
     txt = txt.replace(/&lt;/g, '<')
     txt = txt.replace(/&gt;/g, '>')
-    const e = document.createElement('span')
+    txt = txt.replace(/<br \/>/g,'\n')
+    const e = document.createElement('div')
     e.innerHTML = txt
     return e.innerText
   }
@@ -50,50 +48,57 @@ class CommentPage extends Component {
     }
   }
 
-  escapeHTML(htmlString) {
+  componentDidMount(){
+    window.addEventListener('keydown', this.chooseTimeLIne.bind(this))
   }
 
-  streamStart(){
-    if(this.state.isStreaming){
-      return
-    }else{
-      console.log('Start streaming')
-      this.setState({
-        isStreaming: true
-      })
-      this.mstdnStream().on('message', (msg) => {
-        console.log("get new info")
-        console.log(msg)
-        if (msg.event === "update"){
-          if(this.rewrite(msg.data.content).length === 0){
-            return
-          }else{
-            console.log(this.rewrite(msg.data.content))
-            let comments = this.state.comments
-            let percentRnd = String(this.getRandomInt(8) * 5)
-            console.log(percentRnd)
-            const comment = (
-              <div key={msg.data.id} style={{marginTop: percentRnd + `%`}} className="comment">
-                <p>
-                  <p id="content"><img src={msg.data.account.avatar} alt="icon" width="35px" height="35px" style={{borderRadius: `5px`}}></img>{this.rewrite(msg.data.content)}</p>
-                  <p id="user">{this.getName(msg.data.account)}</p>
-                </p>
-              </div>
-            )
-            comments.push(comment)
-            this.setState({
-              comments: comments
-            })
-          }
-        }
-      })
-      this.mstdnStream().on('error', (err) => {
-        console.log(err)
-      })
-      this.mstdnStream().on('heartbeat', (msg) => {
-        console.log(msg)
-      })
+  chooseTimeLIne(e){
+    if(e.ctrlKey && e.altKey && e.code === 'KeyL'){
+      alert("ローカルタイムラインの監視を開始します")
+      this.streamStart('streaming/public/local')
     }
+    if(e.ctrlKey && e.altKey && e.code === 'KeyU'){
+      alert("ホームタイムラインの監視を開始します")
+      this.streamStart('streaming/user')
+    }
+  }
+
+  streamStart(streamURL){
+    if(this.state.isStreaming){
+      console.log('Stop streaming')
+      this.state.listener.stop()
+    }
+    console.log('Start streaming')
+    let listener = this.mstdn.stream(streamURL)
+    this.setState({
+      listener: listener,
+      isStreaming: true
+    })
+    listener.on('message', (msg) => {
+      console.log("get new info")
+      console.log(msg)
+      if (msg.event === "update"){
+        if(this.rewrite(msg.data.content).length === 0){
+          return
+        }else{
+          let newtoot = this.rewrite(msg.data.content)
+          let account = this.getName(msg.data.account)
+          let comments = this.state.comments
+          const comment = (
+            <div key={msg.data.id} style={{marginTop: String(this.getRandomInt(11) * 5)+`%`}} className="comment">
+              <p id="content">
+                <img src={msg.data.account.avatar} alt="icon" width="35px" height="35px" style={{borderRadius: `5px`}}></img>{newtoot}
+              </p>
+              <p id="user">{account}</p>
+            </div>
+          )
+          comments.push(comment)
+          this.setState({
+            comments: comments
+          })
+        }
+      }
+    })
   }
 
   render() {
@@ -106,7 +111,6 @@ class CommentPage extends Component {
             })
           }
         </div>
-        <input type='button' value='LTLの監視開始' onClick={this.streamStart} />
       </div>
     );
   }
