@@ -10,17 +10,27 @@ class CommentPage extends Component {
       access_token: this.props.location.state.token,
       api_url: this.props.location.state.url + '/api/v1/',
     })
+    this.helptext = (
+      <div key="123" className="helptext">
+        <small>Ctrl+Alt+P: 公開タイムラインの監視</small><br />
+        <small>Ctrl+Alt+U: ホームタイムラインの監視</small><br />
+        <small>Ctrl+Alt+L: ローカルタイムラインの監視</small><br />
+        <small>Ctrl+Alt+H: ヒントの表示/非表示</small><br />
+      </div>
+    )
     this.state = {
       comments: [],
       isStreaming: false,
-      listener: null
+      listener: null,
+      isdisplayhint: true,
+      hintpocket: [this.helptext],
+      timelinename: [(
+        <small key="456" className="timelinename">Timeline: none</small>
+      )],
+      tlname: "none",
     };
     this.rewrite = this.rewrite.bind(this);
     this.getName = this.getName.bind(this);
-  }
-
-  mstdnStream(){
-    return 
   }
 
   getRandomInt(max) {
@@ -28,13 +38,6 @@ class CommentPage extends Component {
   }
 
   rewrite(txt){
-    txt = txt.replace(/<br \/>/g,'　')
-    txt = txt.replace(/&apos;/g, '\'')
-    txt = txt.replace(/&amp;/g, '&')
-    txt = txt.replace(/&quot;/g, '"')
-    txt = txt.replace(/&lt;/g, '<')
-    txt = txt.replace(/&gt;/g, '>')
-    txt = txt.replace(/<br \/>/g,'\n')
     const e = document.createElement('div')
     e.innerHTML = txt
     return e.innerText
@@ -56,10 +59,89 @@ class CommentPage extends Component {
     if(e.ctrlKey && e.altKey && e.code === 'KeyL'){
       alert("ローカルタイムラインの監視を開始します")
       this.streamStart('streaming/public/local')
+      this.setState({
+        tlname: "local"
+      })
+      if(this.state.isdisplayhint){
+        this.setState({
+          timelinename: [(
+            <small key="456" className="timelinename">Timeline: local</small>
+          )]
+        })
+      }
+    }
+    if(e.ctrlKey && e.altKey && e.code === 'KeyP'){
+      alert("パブリックタイムラインの監視を開始します")
+      this.streamStart('streaming/public')
+      this.setState({
+        tlname: "public"
+      })
+      if(this.state.isdisplayhint){
+        this.setState({
+          timelinename: [(
+            <small key="456" className="timelinename">Timeline: public</small>
+          )]
+        })
+      }
     }
     if(e.ctrlKey && e.altKey && e.code === 'KeyU'){
       alert("ホームタイムラインの監視を開始します")
       this.streamStart('streaming/user')
+      this.setState({
+        tlname: "user"
+      })
+      if(this.state.isdisplayhint){
+        this.setState({
+          timelinename: [(
+            <small key="456" className="timelinename">Timeline: user</small>
+          )]
+        })
+      }
+    }
+    if(e.ctrlKey && e.altKey && e.code === 'KeyH'){
+      if(this.state.isdisplayhint){
+        this.setState({
+          isdisplayhint: false,
+          hintpocket: [],
+          timelinename: [],
+        })
+      }else{
+        this.setState({
+          isdisplayhint: true,
+          hintpocket: [this.helptext]
+        })
+        if(this.state.tlname === "local"){
+          this.setState({
+            timelinename: [(
+              <small key="456" className="timelinename">Timeline: local</small>
+            )],
+          })
+        }else if(this.state.tlname === "public"){
+          this.setState({
+            timelinename: [(
+              <small key="456" className="timelinename">Timeline: public</small>
+            )],
+          })
+        }else if(this.state.tlname === "user"){
+          this.setState({
+            timelinename: [(
+              <small key="456" className="timelinename">Timeline: user</small>
+            )],
+          })
+        }else if(this.state.tlname === "none"){
+          this.setState({
+            timelinename: [(
+              <small key="456" className="timelinename">Timeline: none</small>
+            )],
+          })
+        }else{
+          this.setState({
+            timelinename: [(
+              <small key="456" className="timelinename">Timeline: error</small>
+            )],
+          })
+        }
+      }
     }
   }
 
@@ -103,14 +185,20 @@ class CommentPage extends Component {
 
   render() {
     return (
-      <div>
-        <div className='screen'>
-          {
-            this.state.comments.map((comment) => {
-              return comment
-            })
-          }
-        </div>
+      <div className='screen'>
+        {
+          this.state.comments.map((comment) => {
+            return comment
+          })
+        }{
+          this.state.timelinename.map((timelinename) => {
+            return timelinename
+          })
+        }{
+          this.state.hintpocket.map((comment) => {
+            return comment
+          })
+        }
       </div>
     );
   }

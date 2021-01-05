@@ -2,6 +2,14 @@
   text-align: center;
 }
 
+#tokenPage{
+  -webkit-app-region: drag;
+}
+
+.cannotDrag{
+  -webkit-app-region: no-drag;
+}
+
 .App-logo {
   height: 40vmin;
   pointer-events: none;
