@@ -13,23 +13,50 @@ class Token extends Component {
       client_secret: '',
       key: '',
       token: '',
+      isHealth: true,
     };
     this.hundleURLChange = this.hundleURLChange.bind(this);
     this.hundleKeyChange = this.hundleKeyChange.bind(this);
     this.hundleSubmitInstance = this.hundleSubmitInstance.bind(this);
     this.hundleSubmitKey = this.hundleSubmitKey.bind(this);
+    this.mstdn = null;
   }
 
   hundleSubmitInstance(e){
     e.preventDefault()
-    Mastodon.createOAuthApp(this.state.instanceURL + '/api/v1/apps', 'NicoCommeDon')
+    let instanceURL = this.state.instanceURL;
+    if(instanceURL.substr(-1) === '/'){
+      instanceURL = instanceURL.substr(0, instanceURL.length-1)
+      this.setState({instanceURL: instanceURL})
+    }
+    Mastodon.createOAuthApp(instanceURL + '/api/v1/apps', 'NicoCommeDon')
     .catch(err => console.error(err))
     .then((res) => {
-      this.setState({client_id: res.client_id})
-      this.setState({client_secret: res.client_secret})
-      return Mastodon.getAuthorizationUrl(this.state.client_id, this.state.client_secret, this.state.instanceURL)
+      try{
+        this.setState({client_id: res.client_id})
+        this.setState({client_secret: res.client_secret})
+      }catch(err){
+        alert("URLが間違っている可能性があります。");
+        return null;
+      }
+      return Mastodon.getAuthorizationUrl(this.state.client_id, this.state.client_secret, instanceURL);
     })
     .then(url => {
+      if(url === null)
+        return;
+      let request = require('request');
+      let info = {
+        url: instanceURL + '/api/v1/streaming/health'
+      }
+      let callback = (error, response, body) => {
+        if (!error && response.statusCode === 200){
+          if(body === 'OK')
+            this.setState({isHealth: true});
+            return;
+        }
+        this.setState({isHealth: false});
+      }
+      request(info, callback);
       window.open(url, "てすと");
     })
   }
@@ -39,16 +66,29 @@ class Token extends Component {
     Mastodon.getAccessToken(this.state.client_id, this.state.client_secret, this.state.key, this.state.instanceURL)
     .catch(err => console.error(err))
     .then(accessToken => {
-      this.setState({
-        token: accessToken, 
-      })
-      this.props.history.push({
-        pathname: "/main",
-        state: {
-          token: this.state.token,
-          url: this.state.instanceURL,
-        }
-      })
+      if(!this.state.isHealth){
+        alert("インスタンスがNicoCommeDonに対応していない可能性があります。");
+        return;
+      }
+      try {
+        this.setState({
+          token: accessToken, 
+        })
+        this.mstdn = new Mastodon({
+          access_token: this.state.token,
+          api_url: this.state.instanceURL + '/api/v1/',
+        })
+        this.props.history.push({
+          pathname: "/main",
+          state: {
+            token: this.state.token,
+            url: this.state.instanceURL,
+          }
+        })
+      } catch (err) {
+        alert("認証コードが間違っている可能性があります。");
+        return;
+      }
     })
   }
 
